@@ -24,7 +24,7 @@ nav button.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)
 h2{font-size:18px;margin:0 0 4px}h3{font-size:15px;margin:16px 0 6px}
 .sub{color:var(--mute);font-size:14px;margin:0 0 12px}
 label{display:block;font-size:14px;margin:12px 0 4px;font-weight:500}
-select,input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+select,input[type=text],input[type=number]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
 input[type=range]{width:100%;accent-color:var(--acc)}
 .row{display:flex;justify-content:space-between;gap:8px;font-size:14px}
 .score{display:flex;align-items:center;gap:16px}
@@ -64,8 +64,11 @@ input[type=range]{width:100%;accent-color:var(--acc)}
 <p class="note">本 Demo 為前端原型，以規則引擎模擬評估與建議；正式版將串接 LLM 對話教練與 RAG 資源檢索。AI 僅提供準備度參考，不做「禁止飼養」判定，最終決定權在飼主。</p>
 </div>
 <script>
-const S={tab:0,pet:"dog_m",hours:8,budget:4000,house:"rent_unsure",fam:"some",events:{"外派一年":true},plan:{},signed:false,names:"",ck:[false,false,false,false],ci:[0,0,0]};
-const PET={cat:{n:"貓",m:2500},dog_s:{n:"小型犬",m:3500},dog_m:{n:"中型犬",m:4500},dog_l:{n:"大型犬",m:6500}};
+const S={tab:0,pet:"dog_m",hours:60,budget:4000,food:"mid",ins:"no",house:"rent_unsure",fam:"some",events:{"外派一年":true},custom:{ev:"",plan:"",cost:0},plan:{},signed:false,names:"",ck:[false,false,false,false],ci:[0,0,0]};
+const PET={cat:{n:"貓",t:30},dog_s:{n:"小型犬",t:60},dog_m:{n:"中型犬",t:90},dog_l:{n:"大型犬",t:120}};
+const COST={cat:{food:[500,900,1500],vet:600,ins:500,sup:500,groom:100},dog_s:{food:[600,1000,1800],vet:700,ins:600,sup:400,groom:600},dog_m:{food:[900,1500,2600],vet:900,ins:800,sup:500,groom:800},dog_l:{food:[1400,2400,4000],vet:1200,ins:1100,sup:600,groom:1000}};
+const TIER={eco:["經濟飼料",0],mid:["中階飼料",1],pre:["高階飼料",2]},INS={no:["不投保",0],yes:["投保寵物保險",1]};
+function items(){const c=COST[S.pet];return[["飼料（"+TIER[S.food][0]+"）",c.food[TIER[S.food][1]]],["醫療預防（疫苗、驅蟲、健檢攤提）",c.vet],["寵物保險",S.ins==="yes"?c.ins:0],["耗材（砂／尿布墊／零食玩具）",c.sup],["美容洗澡",c.groom]]}
 const HOUSE={own:["自有住宅",100],rent_ok:["租屋，房東已同意",85],rent_unsure:["租屋，房東未明確同意",45]};
 const FAM={all:["全家人都同意並願意分擔",100],some:["部分家人同意",65],alone:["只有我一個人決定",50]};
 const EV={
@@ -73,12 +76,13 @@ const EV={
 "搬家（新住處不能養）":[["尋找可養寵物的租屋","NT$ 1–3 萬","費用中．需提早","提前 2–3 個月看屋，並備妥寵物履歷",3],["家人接手過渡","NT$ 0.5–1 萬","費用低．需溝通","先過渡到新住處確定",3],["短期寄養","NT$ 3–6 萬","費用中．可回歸","以 2–3 個月為限",2],["協助轉送","NT$ 0","最後的選項","優先找熟悉的人",0]],
 "新生兒報到":[["調整動線與習慣","NT$ 0.5–2 萬","費用低．需訓練","分區管理、預先介紹氣味與聲音",3],["訓練師輔導","NT$ 1–3 萬","費用中．有成效","由行為訓練師陪伴適應",3],["家人暫時接手","NT$ 0.5 萬","費用低．需溝通","待寶寶穩定後再接回",2],["協助轉送","NT$ 0","最後的選項","確認無其他方案時才考慮",0]],
 "收入下降／失業":[["調整飼養預算","NT$ 0","費用低．需檢視","與獸醫討論必要與可延後的支出",3],["尋找社福資源","NT$ 0","費用低．需申請","查詢地方動保單位的絕育與醫療補助",3],["短期寄養","NT$ 2–4 萬","費用中．可回歸","以 1–2 個月度過空窗",2],["協助轉送","NT$ 0","最後的選項","確認無其他方案時才考慮",0]]};
+const W=["陪伴時間變少：最近一個月陪伴牠的時間明顯減少","花費壓力變大：本月毛孩的花費讓你感到壓力","生活即將變動：未來半年有搬家、生子或換工作的計畫"];
 const Q=["最近一個月，陪伴牠的時間變少了嗎？","本月毛孩的花費讓你壓力變大了嗎？","未來半年有搬家、生子或換工作的計畫嗎？"];
-function calc(){const p=PET[S.pet],cat=S.pet==="cat";
-let t=S.hours<=4?100:S.hours<=8?70:S.hours<=10?50:30;if(cat)t=Math.min(100,t+20);
+function calc(){const p={...PET[S.pet],m:items().reduce((a,x)=>a+x[1],0)};
+const q=S.hours/p.t,t=q>=1?100:q>=.75?80:q>=.5?55:30;
 const r=S.budget/p.m,e=r>=1.2?100:r>=1?85:r>=.8?60:35;
 const h=HOUSE[S.house][1],f=FAM[S.fam][1];
-return{dims:[["時間",t],["經濟",e],["居住",h],["家庭",f]],total:Math.round((t+e+h+f)/4),cost:Math.round((p.m*120+20000)/10000),p}}
+return{dims:[["陪伴",t],["經濟",e],["居住",h],["家庭",f]],total:Math.round((t+e+h+f)/4),cost:Math.round((p.m*120+20000)/10000),p}}
 const cls=v=>v>=75?"":v>=55?"w":"b";
 function opts(o,sel){return Object.entries(o).map(([k,v])=>`<option value="${k}" ${k===sel?"selected":""}>${v[0]||v.n}</option>`).join("")}
 function render(){
@@ -87,7 +91,7 @@ document.getElementById("nav").innerHTML=nav.map((n,i)=>`<button class="${S.tab=
 const c=calc();let h="";
 if(S.tab===0){
 const rs=[];
-if(c.dims[0][1]<70)rs.push(["w",`每日獨處約 ${S.hours} 小時偏長。建議先寄養試養，或安排日間照顧與放電時間。`]);
+if(c.dims[0][1]<70)rs.push(["w",`每日可陪伴約 ${S.hours} 分鐘，低於${c.p.n}建議的 ${c.p.t} 分鐘。建議安排家人或保姆分擔散步，或調整作息。`]);
 if(c.dims[1][1]<70)rs.push(["b",`預估每月基本花費約 NT$ ${c.p.m.toLocaleString()}，目前預算偏緊。建議先預留醫療備用金。`]);
 if(c.dims[2][1]<70)rs.push(["w","房東尚未明確同意。建議先確認租約條款，再決定是否帶回家。"]);
 if(c.dims[3][1]<70)rs.push(["w","家人意見尚未一致。建議先開一次家庭會議，分配照顧責任。"]);
@@ -95,8 +99,13 @@ if(!rs.length)rs.push(["g","目前條件看起來相當充足，仍建議建立 
 const msg=c.total>=80?"準備度充足":c.total>=60?"可以開始，建議先補強幾項":"建議先試養再決定";
 h=`<div class="card"><h2>你的飼養條件</h2><p class="sub">心動的時候，先花一分鐘看清楚自己的準備度</p>
 <label>想飼養</label><select onchange="S.pet=this.value;render()">${opts(PET,S.pet)}</select>
-<label>每日獨處時間：<b>${S.hours} 小時</b></label><input type="range" min="1" max="14" value="${S.hours}" oninput="S.hours=+this.value;render()">
-<label>每月可負擔預算：<b>NT$ ${S.budget.toLocaleString()}</b></label><input type="range" min="1500" max="10000" step="500" value="${S.budget}" oninput="S.budget=+this.value;render()">
+<label>每日可陪伴／散步時間：<b>${S.hours} 分鐘</b></label><input type="range" min="0" max="240" step="15" value="${S.hours}" oninput="this.previousElementSibling.querySelector('b').textContent=this.value+' 分鐘'" onchange="S.hours=+this.value;render()">
+<p class="sub" style="margin:2px 0 0">${c.p.n}建議每日約 ${c.p.t} 分鐘（${S.pet==="cat"?"互動玩耍與陪伴":"散步與陪伴"}）</p>
+<label>飼料等級</label><select onchange="S.food=this.value;render()">${opts(TIER,S.food)}</select>
+<label>寵物保險</label><select onchange="S.ins=this.value;render()">${opts(INS,S.ins)}</select>
+<h3>每月費用細項（示意）</h3>${items().map(x=>`<div class="row"><span>${x[0]}</span><span>NT$ ${x[1].toLocaleString()}</span></div>`).join("")}<div class="row" style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><b>每月合計</b><b>NT$ ${c.p.m.toLocaleString()}</b></div>
+<label>每月可負擔預算：<b>NT$ ${S.budget.toLocaleString()}</b></label><input type="range" min="1500" max="10000" step="500" value="${S.budget}" oninput="this.previousElementSibling.querySelector('b').textContent='NT$ '+(+this.value).toLocaleString()" onchange="S.budget=+this.value;render()">
+<p class="sub" style="margin:2px 0 0">${S.budget>=c.p.m?"預算可涵蓋，每月餘裕 NT$ "+(S.budget-c.p.m).toLocaleString():"預算不足，每月差 NT$ "+(c.p.m-S.budget).toLocaleString()}</p>
 <label>居住狀況</label><select onchange="S.house=this.value;render()">${opts(HOUSE,S.house)}</select>
 <label>家人共識</label><select onchange="S.fam=this.value;render()">${opts(FAM,S.fam)}</select></div>
 <div class="card"><div class="score"><div class="ring" style="--p:${c.total}"><span><div>${c.total}<small>/ 100</small></div></span></div><div><h2>準備度：${msg}</h2><p class="sub" style="margin:0">十年費用試算約 NT$ ${c.cost} 萬（含初期用品）</p></div></div>
@@ -106,11 +115,11 @@ h=`<div class="card"><h2>你的飼養條件</h2><p class="sub">心動的時候�
 if(S.tab===1){
 const sel=Object.keys(EV).filter(k=>S.events[k]),n=Object.keys(S.plan).filter(k=>S.plan[k]).length;
 h=`<div class="card"><h2>生活變動了，下一步怎麼做？</h2><p class="sub">可複選你可能遇到的變動，AI 會比較各種方案的費用與步驟</p>
-<div class="chips">${Object.keys(EV).map(k=>`<button class="chip ${S.events[k]?"on":""}" onclick="S.events['${k}']=!S.events['${k}'];render()">${k}</button>`).join("")}</div></div>
-${sel.length?sel.map(ev=>`<div class="card"><h2>${ev}：方案比較</h2><p class="sub">以你的 ${c.p.n} 試算，並依優先順序排列</p>
+<div class="chips">${Object.keys(EV).map(k=>`<button class="chip ${S.events[k]?"on":""}" onclick="S.events['${k}']=!S.events['${k}'];render()">${k==="其他情境"?"＋ 其他（自行填寫）":k}</button>`).join("")}</div></div>
+${sel.length?sel.map(ev=>ev==="其他情境"?customCard():`<div class="card"><h2>${ev}：方案比較</h2><p class="sub">以你的 ${c.p.n} 試算，並依優先順序排列</p>
 ${EV[ev].map((o,i)=>{const k=ev+i;return`<div class="opt ${S.plan[k]?"sel":""}"><b>${o[0]}</b><span class="cost"><b>${money(...amt(o))}</b></span><small>${o[2]}｜${o[3]}</small><span style="text-align:right"><button class="chip ${S.plan[k]?"on":""}" onclick="S.plan['${k}']=!S.plan['${k}'];render()">${S.plan[k]?"已加入":"加入 Plan B"}</button></span></div>`}).join("")}
 <div class="risk g">建議：優先考慮前幾項，並把「協助轉送」留作最後選項。</div>${(()=>{const b=planCost().by[ev];return b?`<div class="row" style="margin-top:8px"><span>此情境已選方案小計</span><b>${money(b[0],b[1])}</b></div>`:""})()}</div>`).join(""):`<div class="card"><div class="risk">請至少選擇一個變動情境。</div></div>`}
-${(()=>{const pc=planCost(),ev=Object.keys(pc.by);return n?`<div class="card" style="border-color:var(--acc)"><h2>Plan B 預估總額</h2><p class="sub">已選 ${n} 項方案，涵蓋 ${ev.length} 個情境；若同時發生，費用會累加（依${c.p.n}體型試算）</p>${ev.map(x=>`<div class="row"><span>${x}</span><span>${money(pc.by[x][0],pc.by[x][1])}</span></div>`).join("")}<div class="row" style="margin-top:8px;font-size:17px"><b>合計</b><b>${money(pc.lo,pc.hi)}</b></div></div>`:""})()}
+${(()=>{const pc=planCost(),ev=Object.keys(pc.by);return n?`<div class="card" style="border-color:var(--acc)"><h2>Plan B 預估總額</h2><p class="sub">已選 ${n} 項方案，涵蓋 ${ev.length} 個情境；若同時發生，費用會累加（依${c.p.n}體型試算）</p>${ev.map(x=>`<div class="row"><span>${evName(x)}</span><span>${money(pc.by[x][0],pc.by[x][1])}</span></div>`).join("")}<div class="row" style="margin-top:8px;font-size:17px"><b>合計</b><b>${money(pc.lo,pc.hi)}</b></div></div>`:""})()}
 <div class="btns"><button class="btn ghost" onclick="go(0)">上一步</button><button class="btn" onclick="go(2)">下一步：建立承諾（Plan B ${n} 項）</button></div>`}
 if(S.tab===2){
 const n=Object.keys(S.plan).filter(k=>S.plan[k]).length;
@@ -119,7 +128,7 @@ const ok=S.ck.every(Boolean)&&S.names.trim();
 h=S.signed?`<div class="cert"><h2 style="text-align:center">終養承諾書</h2>${LT(c)}<p class="note">已簽署，並設定每年 check-in 提醒</p></div><div class="btns"><button class="btn ghost" onclick="S.signed=false;render()">重新編輯</button><button class="btn" onclick="go(3)">下一步：持續陪伴</button></div>`:
 `<div class="card"><h2>終養承諾</h2><p class="sub">把承諾拆成做得到的事，由家人共同確認</p>
 ${items.map((t,i)=>`<label class="chk" style="font-weight:400;margin:0"><input type="checkbox" ${S.ck[i]?"checked":""} onchange="S.ck[${i}]=this.checked;render()"><span>${t}</span></label>`).join("")}
-<label>簽署人（家人姓名，以頓號分隔）</label><input type="text" id="nm" value="${S.names}" placeholder="例：小安、媽媽" oninput="S.names=this.value;document.getElementById('sg').disabled=!(S.ck.every(Boolean)&&S.names.trim());document.getElementById('lt').innerHTML=LT(calc())"></div>
+<label>簽署人</label><input type="text" id="nm" value="${S.names}" placeholder="例：小安" oninput="S.names=this.value;document.getElementById('sg').disabled=!(S.ck.every(Boolean)&&S.names.trim());document.getElementById('lt').innerHTML=LT(calc())"></div>
 <div class="card cert"><h3 style="margin-top:0">承諾書預覽</h3><div id="lt">${LT(c)}</div></div>
 <div class="btns"><button class="btn ghost" onclick="go(1)">上一步</button><button class="btn" id="sg" ${ok?"":"disabled"} onclick="S.signed=true;render()">確認並簽署承諾</button></div>`}
 if(S.tab===3){
@@ -131,7 +140,7 @@ ${Q.map((q,i)=>`<label>${q}</label><div class="chips"><button class="chip ${S.ci
 <div class="btns"><button class="btn ghost" onclick="go(2)">上一步</button><button class="btn" onclick="go(4)">產生終養報告</button></div>`}
 if(S.tab===4){
 const ks=Object.keys(S.plan).filter(k=>S.plan[k]),n=ks.length,s=S.ci.reduce((a,b)=>a+b,0);
-const pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"（"+k.slice(0,-1)+"）");
+const pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"（"+evName(k.slice(0,-1))+"）");
 const a=Math.round(c.total*.5+Math.min(n,3)/3*25+(S.signed?15:0)+(s===0?10:s===1?5:0));
 const lv=a>=80?"終養準備良好":a>=60?"基礎已建立，仍有補強空間":"建議先補強再決定";
 const td=[];if(c.total<70)td.push("回到第 1 步，針對偏弱的條件先試養或補強後再決定");if(n<3)td.push("再為至少 3 個變故情境建立 Plan B");if(!S.signed)td.push("與家人完成終養承諾簽署");if(s>0)td.push("已出現風險訊號，請優先檢視變故預案，並諮詢訓練師、獸醫或地方動保單位");if(!td.length)td.push("維持每季 check-in，生活變動時重新評估");
@@ -143,25 +152,35 @@ h=`<div class="card"><h2>我的終養報告</h2><p class="sub">${d}｜飼養對�
 <div class="row"><span>十年費用試算</span><b>約 NT$ ${c.cost} 萬</b></div></div>
 <div class="card"><h3 style="margin-top:0">變故 Plan B（${n} 項）</h3>${n?`<div class="risk g"><b>預估總額 ${(()=>{const p=planCost();return money(p.lo,p.hi)})()}</b></div>`:""}${n?pl.map(x=>`<div class="risk g">${x}</div>`).join(""):`<div class="risk">尚未建立，請回到第 2 步加入至少一項方案。</div>`}
 <h3>終養承諾</h3><div class="risk ${S.signed?"g":""}">${S.signed?"已由 "+S.names+" 簽署":"尚未簽署"}</div><div class="cert" style="margin-top:8px"><b>終養承諾書</b>${LT(c)}</div>
-<h3>風險訊號</h3><div class="risk ${s===0?"g":s===1?"":"b"}">${s===0?"目前沒有明顯訊號":"check-in 出現 "+s+" 項訊號"}</div></div>
+<h3>風險訊號</h3><div class="risk ${s===0?"g":s===1?"":"b"}">${s===0?"目前沒有明顯訊號":"check-in 出現 "+s+" 項訊號："+"<ul style=\"margin:4px 0 0;padding-left:20px\">"+S.ci.map((v,i)=>v?`<li>${W[i]}</li>`:"").join("")+"</ul>"}</div></div>
 <div class="card"><h3 style="margin-top:0">建議下一步</h3>${td.map(x=>`<div class="chk"><span>${x}</span></div>`).join("")}<p class="note">本報告為準備度參考，不構成「是否適合飼養」的判定，也不提供診斷或處方建議；最終決定權在飼主。</p></div>
 <div class="btns" data-html2canvas-ignore="true"><button class="btn ghost" onclick="go(3)">上一步</button><button class="btn" id="pdfb" onclick="exportPDF()">匯出 PDF</button></div>`}
 document.getElementById("app").innerHTML=h}
+const esc=t=>String(t).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const evName=ev=>ev==="其他情境"?(esc(S.custom.ev.trim())||"其他情境"):ev;
+function cu(){return[esc(S.custom.plan.trim()||"自訂方案"),"NT$ "+(S.custom.cost||0)+" 萬","自行填寫",S.custom.ev.trim()?"情境："+esc(S.custom.ev.trim()):"",0,1]}
+Object.defineProperty(EV,"其他情境",{get:()=>[cu()],enumerable:true});
+function customCard(){const k="其他情境"+0,on=S.plan[k];
+return `<div class="card"><h2>其他情境：自行填寫</h2><p class="sub">沒有列在上面的變動，可以自己描述並寫下因應方式</p>
+<label>你可能遇到的變動</label><input type="text" value="${esc(S.custom.ev)}" placeholder="例：工作調動到外縣市" oninput="S.custom.ev=this.value">
+<label>我的因應方式</label><input type="text" value="${esc(S.custom.plan)}" placeholder="例：請住在附近的朋友定期代為照顧" oninput="S.custom.plan=this.value">
+<label>預估費用（NT$ 萬，選填）</label><input type="number" min="0" step="0.5" value="${S.custom.cost||""}" placeholder="0" oninput="S.custom.cost=Math.max(0,+this.value||0)">
+<div class="btns"><span></span><button class="chip ${on?"on":""}" onclick="S.plan['${k}']=!S.plan['${k}'];render()">${on?"已加入":"加入 Plan B"}</button></div></div>`}
 const PF={cat:.6,dog_s:.8,dog_m:1,dog_l:1.3},fm=v=>+v.toFixed(1);
-function amt(o){const m=o[1].match(/([\d.]+)(?:–([\d.]+))?/),lo=+m[1],hi=m[2]?+m[2]:lo,f=PF[S.pet];return[lo*f,hi*f]}
+function amt(o){const m=o[1].match(/([\d.]+)(?:–([\d.]+))?/),lo=+m[1],hi=m[2]?+m[2]:lo,f=o[5]?1:PF[S.pet];return[lo*f,hi*f]}
 function money(lo,hi){return lo===0&&hi===0?"NT$ 0":"NT$ "+(fm(lo)===fm(hi)?fm(lo):fm(lo)+"–"+fm(hi))+" 萬"}
 function planCost(){let lo=0,hi=0;const by={};Object.keys(S.plan).filter(k=>S.plan[k]).forEach(k=>{const ev=k.slice(0,-1),r=amt(EV[ev][+k.slice(-1)]);lo+=r[0];hi+=r[1];by[ev]=by[ev]||[0,0];by[ev][0]+=r[0];by[ev][1]+=r[1]});return{lo,hi,by}}
-function LT(c){const ks=Object.keys(S.plan).filter(k=>S.plan[k]),pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"（"+k.slice(0,-1)+"）");
+function LT(c){const ks=Object.keys(S.plan).filter(k=>S.plan[k]),pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"（"+evName(k.slice(0,-1))+"）");
 return `<p style="margin:0">本人${S.names?"（"+S.names+"）":""}在迎接${c.p.n}回家之際，鄭重承諾：</p><ol><li>陪伴牠從相遇到終老，不因一時的困難輕易放棄。</li><li>已了解${c.p.n}十年費用約 NT$ ${c.cost} 萬，並預留預算與醫療備用金。</li><li>已與家人共同討論，並約定分擔照顧責任。</li><li>生活出現變動時，先啟動 Plan B（${pl.length?pl.join("、"):"尚未建立"}），再考慮其他選擇。</li><li>每年接受一次 check-in，遇到困難時主動尋求訓練師、獸醫或地方動保單位協助。</li></ol><p style="margin:8px 0 0">簽署人：${S.names||"＿＿＿＿"}｜日期：${new Date().toLocaleDateString("zh-TW")}</p>`}
 const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const setB=t=>{const b=document.getElementById("pdfb");if(b)b.textContent=t};
 function pdfHTML(){
 const c=calc(),ks=Object.keys(S.plan).filter(k=>S.plan[k]),n=ks.length,s=S.ci.reduce((a,b)=>a+b,0);
-const pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"｜"+k.slice(0,-1));
+const pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"｜"+evName(k.slice(0,-1)));
 const a=Math.round(c.total*.5+Math.min(n,3)/3*25+(S.signed?15:0)+(s===0?10:s===1?5:0));
 const lv=a>=80?"終養準備良好":a>=60?"基礎已建立，仍有補強空間":"建議先補強再決定";
 const td=[];if(c.total<70)td.push("針對偏弱的條件先試養或補強後再決定");if(n<3)td.push("再為至少 3 個變故情境建立 Plan B");if(!S.signed)td.push("與家人完成終養承諾簽署");if(s>0)td.push("已出現風險訊號，請優先檢視變故預案，並諮詢訓練師、獸醫或地方動保單位");if(!td.length)td.push("維持每季 check-in，生活變動時重新評估");
-const rs=[];if(c.dims[0][1]<70)rs.push(`每日獨處約 ${S.hours} 小時偏長，建議先寄養試養，或安排日間照顧與放電時間。`);if(c.dims[1][1]<70)rs.push(`預估每月基本花費約 NT$ ${c.p.m.toLocaleString()}，目前預算偏緊，建議先預留醫療備用金。`);if(c.dims[2][1]<70)rs.push("房東尚未明確同意，建議先確認租約條款，再決定是否帶回家。");if(c.dims[3][1]<70)rs.push("家人意見尚未一致，建議先開一次家庭會議，分配照顧責任。");if(!rs.length)rs.push("目前條件看起來相當充足，仍建議建立 Plan B，為變動預作準備。");
+const rs=[];if(c.dims[0][1]<70)rs.push(`每日可陪伴約 ${S.hours} 分鐘，低於${c.p.n}建議的 ${c.p.t} 分鐘，建議安排家人或保姆分擔散步，或調整作息。`);if(c.dims[1][1]<70)rs.push(`預估每月基本花費約 NT$ ${c.p.m.toLocaleString()}，目前預算偏緊，建議先預留醫療備用金。`);if(c.dims[2][1]<70)rs.push("房東尚未明確同意，建議先確認租約條款，再決定是否帶回家。");if(c.dims[3][1]<70)rs.push("家人意見尚未一致，建議先開一次家庭會議，分配照顧責任。");if(!rs.length)rs.push("目前條件看起來相當充足，仍建議建立 Plan B，為變動預作準備。");
 const e=t=>String(t).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 const d=new Date().toLocaleDateString("zh-TW"),nm=e(S.names||"＿＿＿＿"),col=v=>v>=75?"#1b7a6b":v>=55?"#b7791f":"#b4432f";
 const dash=(a*.9739).toFixed(1);
@@ -172,7 +191,7 @@ return `<div class="pg"><style>.pg{width:794px;height:1123px;background:#fff;col
 <div style="flex:1"><div style="font-size:11px;color:#5c6f73">終養準備指數</div><div style="font-size:23px;font-weight:700">${lv}</div><div style="font-size:11px;color:#5c6f73">飼養前準備度 50%＋Plan B 25%＋承諾 15%＋風險訊號 10%</div>
 <div class="st"><div>準備度<b>${c.total} / 100</b></div><div>Plan B<b>${n} 項</b></div><div>承諾<b>${S.signed?"已簽署":"未簽署"}</b></div><div>風險訊號<b>${s===0?"無":s+" 項"}</b></div></div></div></div>
 <div class="two"><div class="box"><h3>飼養前準備度四項條件</h3>${c.dims.map(x=>`<div class="row"><span>${x[0]}</span><b>${x[1]}</b></div><div class="bar"><i style="width:${x[1]}%;background:${col(x[1])}"></i></div>`).join("")}<div class="row"><span>十年費用試算</span><b>約 NT$ ${c.cost} 萬</b></div></div>
-<div class="box"><h3>變故 Plan B${n?"（預估 "+(()=>{const p=planCost();return money(p.lo,p.hi)})()+"）":""}</h3>${n?pl.slice(0,8).map(x=>`<span class="tg">${x}</span>`).join("")+(n>8?`<span class="tg">等 ${n} 項</span>`:""):"<div style='color:#b7791f'>尚未建立 Plan B</div>"}<h3 style="margin-top:14px">check-in 風險訊號</h3><div>${s===0?"目前沒有明顯訊號":"出現 "+s+" 項訊號，建議優先檢視變故預案"}</div></div></div>
+<div class="box"><h3>變故 Plan B${n?"（預估 "+(()=>{const p=planCost();return money(p.lo,p.hi)})()+"）":""}</h3>${n?pl.slice(0,8).map(x=>`<span class="tg">${x}</span>`).join("")+(n>8?`<span class="tg">等 ${n} 項</span>`:""):"<div style='color:#b7791f'>尚未建立 Plan B</div>"}<h3 style="margin-top:14px">check-in 風險訊號</h3><div>${s===0?"目前沒有明顯訊號":"出現 "+s+" 項訊號，建議優先檢視變故預案："+"<ul style=\"font-size:12px\">"+S.ci.map((v,i)=>v?`<li>${W[i]}</li>`:"").join("")+"</ul>"}</div></div></div>
 <div class="two"><div class="box"><h3>AI 提醒</h3><ul style="font-size:12px">${rs.map(x=>`<li>${x}</li>`).join("")}</ul></div><div class="box"><h3>建議下一步</h3><ul style="font-size:12px">${td.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>
 <div class="box" style="flex:1;display:flex;flex-direction:column;border:2px solid #1b7a6b;background:#f3faf8"><h3 style="text-align:center;font-size:18px">終養承諾書</h3><p style="margin:0">本人（${nm}）在迎接${c.p.n}回家之際，鄭重承諾：</p><ol style="margin-top:6px"><li>陪伴牠從相遇到終老，不因一時的困難輕易放棄。</li><li>已了解${c.p.n}十年費用約 NT$ ${c.cost} 萬，並預留預算與醫療備用金。</li><li>已與家人共同討論，並約定分擔照顧責任。</li><li>生活出現變動時，先啟動 Plan B（${n?pl.slice(0,4).join("、"):"尚未建立"}），再考慮其他選擇。</li><li>每年接受一次 check-in，遇到困難時主動尋求訓練師、獸醫或地方動保單位協助。</li></ol>
 <div class="row" style="margin-top:auto;padding-top:12px;border-top:1px dashed #1b7a6b"><span>簽署人：<b>${nm}</b></span><span>日期：${d}</span><span>${S.signed?"已簽署":"尚未簽署"}</span></div></div>
