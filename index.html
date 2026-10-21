@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>相守 AI 平台 Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaf1ef;--card:#fff;--ink:#17262b;--mute:#5c6f73;--line:#d3e0dd;--acc:#1b7a6b;--acc-ink:#fff;--soft:#d9eee9;--warn:#b7791f;--warnbg:#fbf0d9;--bad:#b4432f;--badbg:#f9e3de;--ok:#1b7a6b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1b1e;--card:#18282c;--ink:#e6f0ee;--mute:#9ab0b3;--line:#2a3f44;--acc:#4fc3ae;--acc-ink:#07211c;--soft:#1c3a38;--warn:#f0c36a;--warnbg:#3a2f14;--bad:#f09a86;--badbg:#3d2420;--ok:#4fc3ae;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1b1e;--card:#18282c;--ink:#e6f0ee;--mute:#9ab0b3;--line:#2a3f44;--acc:#4fc3ae;--acc-ink:#07211c;--soft:#1c3a38;--warn:#f0c36a;--warnbg:#3a2f14;--bad:#f09a86;--badbg:#3d2420;--ok:#4fc3ae;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+header h1{font-size:22px;margin:0}header p{margin:2px 0 16px;color:var(--mute);font-size:14px}
+.tag{display:inline-block;font-size:12px;background:var(--warnbg);color:var(--warn);padding:1px 8px;border-radius:99px;margin-left:6px;vertical-align:middle}
+nav{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+nav button{border:1px solid var(--line);background:var(--card);color:var(--mute);border-radius:10px;padding:8px 4px;font:inherit;font-size:13px;cursor:pointer;line-height:1.3}
+nav button b{display:block;font-size:15px}
+nav button.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+h2{font-size:18px;margin:0 0 4px}h3{font-size:15px;margin:16px 0 6px}
+.sub{color:var(--mute);font-size:14px;margin:0 0 12px}
+label{display:block;font-size:14px;margin:12px 0 4px;font-weight:500}
+select,input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:14px}
+.score{display:flex;align-items:center;gap:16px}
+.ring{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;flex:none;background:conic-gradient(var(--acc) calc(var(--p)*1%),var(--line) 0)}
+.ring span{width:76px;height:76px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:26px;font-weight:700;line-height:1}
+.ring small{display:block;font-size:11px;font-weight:400;color:var(--mute);text-align:center}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:2px 0 8px}.bar i{display:block;height:100%;background:var(--acc)}
+.bar i.w{background:var(--warn)}.bar i.b{background:var(--bad)}
+.risk{padding:10px 12px;border-radius:10px;font-size:14px;margin:6px 0;background:var(--warnbg)}
+.risk.b{background:var(--badbg)}.risk.g{background:var(--soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:7px 14px;border-radius:99px;font:inherit;font-size:14px;cursor:pointer}
+.chip.on{background:var(--acc);color:var(--acc-ink);border-color:var(--acc)}
+.opt{border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+.opt.sel{border-color:var(--acc);background:var(--soft)}
+.opt b{font-size:15px}.opt small{color:var(--mute);grid-column:1}
+.opt .cost{font-size:13px;text-align:right}
+.btn{background:var(--acc);color:var(--acc-ink);border:0;border-radius:10px;padding:11px 18px;font:inherit;font-weight:700;cursor:pointer}
+.btn.ghost{background:none;color:var(--acc);border:1px solid var(--acc)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btns{display:flex;justify-content:space-between;gap:8px;margin-top:6px}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.chk input{margin-top:6px;accent-color:var(--acc);width:18px;height:18px}
+.cert{border:2px dashed var(--acc);border-radius:14px;padding:18px;text-align:center;background:var(--soft)}
+.cert{text-align:left}.cert ol{padding-left:20px;margin:8px 0}.cert li{margin:4px 0}
+.note{font-size:12px;color:var(--mute);margin-top:12px}
+.scroll{overflow-x:auto}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+<header><h1>相守 AI<span class="tag">示意數據．非實測</span></h1><p>從相遇到終老的終養夥伴｜毛孩未來研究所 平台 Demo</p></header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<p class="note">本 Demo 為前端原型，以規則引擎模擬評估與建議；正式版將串接 LLM 對話教練與 RAG 資源檢索。AI 僅提供準備度參考，不做「禁止飼養」判定，最終決定權在飼主。</p>
+</div>
+<script>
+const S={tab:0,pet:"dog_m",hours:8,budget:4000,house:"rent_unsure",fam:"some",events:{"外派一年":true},plan:{},signed:false,names:"",ck:[false,false,false,false],ci:[0,0,0]};
+const PET={cat:{n:"貓",m:2500},dog_s:{n:"小型犬",m:3500},dog_m:{n:"中型犬",m:4500},dog_l:{n:"大型犬",m:6500}};
+const HOUSE={own:["自有住宅",100],rent_ok:["租屋，房東已同意",85],rent_unsure:["租屋，房東未明確同意",45]};
+const FAM={all:["全家人都同意並願意分擔",100],some:["部分家人同意",65],alone:["只有我一個人決定",50]};
+const EV={
+"外派一年":[["帶同行","NT$ 6–10 萬","費用高．步驟多","需評估檢疫、航程與當地租屋規定",1],["家人接手","NT$ 0.5–1 萬","費用低．需溝通","與家人約定照顧分工與費用補貼",3],["短期寄養","NT$ 15–20 萬","費用中．可回歸","可按月評估，保留回歸機會",2],["協助轉送","NT$ 0","最後的選項","經由收容、中途網絡媒合，並簽立轉送資料",0]],
+"搬家（新住處不能養）":[["尋找可養寵物的租屋","NT$ 1–3 萬","費用中．需提早","提前 2–3 個月看屋，並備妥寵物履歷",3],["家人接手過渡","NT$ 0.5–1 萬","費用低．需溝通","先過渡到新住處確定",3],["短期寄養","NT$ 3–6 萬","費用中．可回歸","以 2–3 個月為限",2],["協助轉送","NT$ 0","最後的選項","優先找熟悉的人",0]],
+"新生兒報到":[["調整動線與習慣","NT$ 0.5–2 萬","費用低．需訓練","分區管理、預先介紹氣味與聲音",3],["訓練師輔導","NT$ 1–3 萬","費用中．有成效","由行為訓練師陪伴適應",3],["家人暫時接手","NT$ 0.5 萬","費用低．需溝通","待寶寶穩定後再接回",2],["協助轉送","NT$ 0","最後的選項","確認無其他方案時才考慮",0]],
+"收入下降／失業":[["調整飼養預算","NT$ 0","費用低．需檢視","與獸醫討論必要與可延後的支出",3],["尋找社福資源","NT$ 0","費用低．需申請","查詢地方動保單位的絕育與醫療補助",3],["短期寄養","NT$ 2–4 萬","費用中．可回歸","以 1–2 個月度過空窗",2],["協助轉送","NT$ 0","最後的選項","確認無其他方案時才考慮",0]]};
+const Q=["最近一個月，陪伴牠的時間變少了嗎？","本月毛孩的花費讓你壓力變大了嗎？","未來半年有搬家、生子或換工作的計畫嗎？"];
+function calc(){const p=PET[S.pet],cat=S.pet==="cat";
+let t=S.hours<=4?100:S.hours<=8?70:S.hours<=10?50:30;if(cat)t=Math.min(100,t+20);
+const r=S.budget/p.m,e=r>=1.2?100:r>=1?85:r>=.8?60:35;
+const h=HOUSE[S.house][1],f=FAM[S.fam][1];
+return{dims:[["時間",t],["經濟",e],["居住",h],["家庭",f]],total:Math.round((t+e+h+f)/4),cost:Math.round((p.m*120+20000)/10000),p}}
+const cls=v=>v>=75?"":v>=55?"w":"b";
+function opts(o,sel){return Object.entries(o).map(([k,v])=>`<option value="${k}" ${k===sel?"selected":""}>${v[0]||v.n}</option>`).join("")}
+function render(){
+const nav=["飼養前評估","變故預案","終養承諾","持續陪伴","終養報告"];
+document.getElementById("nav").innerHTML=nav.map((n,i)=>`<button class="${S.tab===i?"on":""}" onclick="go(${i})"><b>${i+1}</b>${n}</button>`).join("");
+const c=calc();let h="";
+if(S.tab===0){
+const rs=[];
+if(c.dims[0][1]<70)rs.push(["w",`每日獨處約 ${S.hours} 小時偏長。建議先寄養試養，或安排日間照顧與放電時間。`]);
+if(c.dims[1][1]<70)rs.push(["b",`預估每月基本花費約 NT$ ${c.p.m.toLocaleString()}，目前預算偏緊。建議先預留醫療備用金。`]);
+if(c.dims[2][1]<70)rs.push(["w","房東尚未明確同意。建議先確認租約條款，再決定是否帶回家。"]);
+if(c.dims[3][1]<70)rs.push(["w","家人意見尚未一致。建議先開一次家庭會議，分配照顧責任。"]);
+if(!rs.length)rs.push(["g","目前條件看起來相當充足，仍建議建立 Plan B，為變動預作準備。"]);
+const msg=c.total>=80?"準備度充足":c.total>=60?"可以開始，建議先補強幾項":"建議先試養再決定";
+h=`<div class="card"><h2>你的飼養條件</h2><p class="sub">心動的時候，先花一分鐘看清楚自己的準備度</p>
+<label>想飼養</label><select onchange="S.pet=this.value;render()">${opts(PET,S.pet)}</select>
+<label>每日獨處時間：<b>${S.hours} 小時</b></label><input type="range" min="1" max="14" value="${S.hours}" oninput="S.hours=+this.value;render()">
+<label>每月可負擔預算：<b>NT$ ${S.budget.toLocaleString()}</b></label><input type="range" min="1500" max="10000" step="500" value="${S.budget}" oninput="S.budget=+this.value;render()">
+<label>居住狀況</label><select onchange="S.house=this.value;render()">${opts(HOUSE,S.house)}</select>
+<label>家人共識</label><select onchange="S.fam=this.value;render()">${opts(FAM,S.fam)}</select></div>
+<div class="card"><div class="score"><div class="ring" style="--p:${c.total}"><span><div>${c.total}<small>/ 100</small></div></span></div><div><h2>準備度：${msg}</h2><p class="sub" style="margin:0">十年費用試算約 NT$ ${c.cost} 萬（含初期用品）</p></div></div>
+<h3>四項條件</h3>${c.dims.map(d=>`<div class="row"><span>${d[0]}</span><span>${d[1]}</span></div><div class="bar"><i class="${cls(d[1])}" style="width:${d[1]}%"></i></div>`).join("")}
+<h3>AI 提醒</h3>${rs.map(r=>`<div class="risk ${r[0]}">${r[1]}</div>`).join("")}</div>
+<div class="btns"><span></span><button class="btn" onclick="go(1)">下一步：預寫變故 Plan B</button></div>`}
+if(S.tab===1){
+const sel=Object.keys(EV).filter(k=>S.events[k]),n=Object.keys(S.plan).filter(k=>S.plan[k]).length;
+h=`<div class="card"><h2>生活變動了，下一步怎麼做？</h2><p class="sub">可複選你可能遇到的變動，AI 會比較各種方案的費用與步驟</p>
+<div class="chips">${Object.keys(EV).map(k=>`<button class="chip ${S.events[k]?"on":""}" onclick="S.events['${k}']=!S.events['${k}'];render()">${k}</button>`).join("")}</div></div>
+${sel.length?sel.map(ev=>`<div class="card"><h2>${ev}：方案比較</h2><p class="sub">以你的 ${c.p.n} 試算，並依優先順序排列</p>
+${EV[ev].map((o,i)=>{const k=ev+i;return`<div class="opt ${S.plan[k]?"sel":""}"><b>${o[0]}</b><span class="cost"><b>${money(...amt(o))}</b></span><small>${o[2]}｜${o[3]}</small><span style="text-align:right"><button class="chip ${S.plan[k]?"on":""}" onclick="S.plan['${k}']=!S.plan['${k}'];render()">${S.plan[k]?"已加入":"加入 Plan B"}</button></span></div>`}).join("")}
+<div class="risk g">建議：優先考慮前幾項，並把「協助轉送」留作最後選項。</div>${(()=>{const b=planCost().by[ev];return b?`<div class="row" style="margin-top:8px"><span>此情境已選方案小計</span><b>${money(b[0],b[1])}</b></div>`:""})()}</div>`).join(""):`<div class="card"><div class="risk">請至少選擇一個變動情境。</div></div>`}
+${(()=>{const pc=planCost(),ev=Object.keys(pc.by);return n?`<div class="card" style="border-color:var(--acc)"><h2>Plan B 預估總額</h2><p class="sub">已選 ${n} 項方案，涵蓋 ${ev.length} 個情境；若同時發生，費用會累加（依${c.p.n}體型試算）</p>${ev.map(x=>`<div class="row"><span>${x}</span><span>${money(pc.by[x][0],pc.by[x][1])}</span></div>`).join("")}<div class="row" style="margin-top:8px;font-size:17px"><b>合計</b><b>${money(pc.lo,pc.hi)}</b></div></div>`:""})()}
+<div class="btns"><button class="btn ghost" onclick="go(0)">上一步</button><button class="btn" onclick="go(2)">下一步：建立承諾（Plan B ${n} 項）</button></div>`}
+if(S.tab===2){
+const n=Object.keys(S.plan).filter(k=>S.plan[k]).length;
+const items=[`我了解${c.p.n}的十年費用約 NT$ ${c.cost} 萬，並已預留預算`,"家人已共同同意，並約定照顧分工",`我已建立 ${n} 項變故 Plan B`,"我願意每年接受一次 check-in 提醒"];
+const ok=S.ck.every(Boolean)&&S.names.trim();
+h=S.signed?`<div class="cert"><h2 style="text-align:center">終養承諾書</h2>${LT(c)}<p class="note">已簽署，並設定每年 check-in 提醒</p></div><div class="btns"><button class="btn ghost" onclick="S.signed=false;render()">重新編輯</button><button class="btn" onclick="go(3)">下一步：持續陪伴</button></div>`:
+`<div class="card"><h2>終養承諾</h2><p class="sub">把承諾拆成做得到的事，由家人共同確認</p>
+${items.map((t,i)=>`<label class="chk" style="font-weight:400;margin:0"><input type="checkbox" ${S.ck[i]?"checked":""} onchange="S.ck[${i}]=this.checked;render()"><span>${t}</span></label>`).join("")}
+<label>簽署人（家人姓名，以頓號分隔）</label><input type="text" id="nm" value="${S.names}" placeholder="例：小安、媽媽" oninput="S.names=this.value;document.getElementById('sg').disabled=!(S.ck.every(Boolean)&&S.names.trim());document.getElementById('lt').innerHTML=LT(calc())"></div>
+<div class="card cert"><h3 style="margin-top:0">承諾書預覽</h3><div id="lt">${LT(c)}</div></div>
+<div class="btns"><button class="btn ghost" onclick="go(1)">上一步</button><button class="btn" id="sg" ${ok?"":"disabled"} onclick="S.signed=true;render()">確認並簽署承諾</button></div>`}
+if(S.tab===3){
+const s=S.ci.reduce((a,b)=>a+b,0);
+const lv=s===0?["g","目前沒有明顯風險訊號，繼續保持。"]:s<=1?["w","出現輕微訊號：建議提早檢視 Plan B，並預約一次家庭會議。"]:["b","出現多項風險訊號：AI 已主動重新評估，建議立即查看變故預案，並聯絡訓練師、獸醫或地方動保單位。"];
+h=`<div class="card"><h2>定期 check-in</h2><p class="sub">模擬每季提醒，AI 從回答中辨識棄養風險訊號並主動轉介</p>
+${Q.map((q,i)=>`<label>${q}</label><div class="chips"><button class="chip ${S.ci[i]===0?"on":""}" onclick="S.ci[${i}]=0;render()">沒有</button><button class="chip ${S.ci[i]===1?"on":""}" onclick="S.ci[${i}]=1;render()">有</button></div>`).join("")}</div>
+<div class="card"><h2>風險評估</h2><div class="risk ${lv[0]}">${lv[1]}</div>${s>0?`<button class="btn" style="margin-top:8px" onclick="go(1)">查看變故預案</button>`:""}</div>
+<div class="btns"><button class="btn ghost" onclick="go(2)">上一步</button><button class="btn" onclick="go(4)">產生終養報告</button></div>`}
+if(S.tab===4){
+const ks=Object.keys(S.plan).filter(k=>S.plan[k]),n=ks.length,s=S.ci.reduce((a,b)=>a+b,0);
+const pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"（"+k.slice(0,-1)+"）");
+const a=Math.round(c.total*.5+Math.min(n,3)/3*25+(S.signed?15:0)+(s===0?10:s===1?5:0));
+const lv=a>=80?"終養準備良好":a>=60?"基礎已建立，仍有補強空間":"建議先補強再決定";
+const td=[];if(c.total<70)td.push("回到第 1 步，針對偏弱的條件先試養或補強後再決定");if(n<3)td.push("再為至少 3 個變故情境建立 Plan B");if(!S.signed)td.push("與家人完成終養承諾簽署");if(s>0)td.push("已出現風險訊號，請優先檢視變故預案，並諮詢訓練師、獸醫或地方動保單位");if(!td.length)td.push("維持每季 check-in，生活變動時重新評估");
+const d=new Date().toLocaleDateString("zh-TW");
+window.RT=`相守 AI 終養報告（${d}）\n終養準備指數：${a}/100｜${lv}\n飼養對象：${c.p.n}｜飼養前準備度：${c.total}/100｜十年費用約 NT$ ${c.cost} 萬\nPlan B：${n} 項${n?"（"+pl.join("、")+"）":""}\n承諾：${S.signed?"已簽署（"+S.names+"）":"尚未簽署"}\n建議下一步：${td.join("；")}\n※ 示意數據，AI 僅供參考，最終決定權在飼主。`;
+h=`<div class="card"><h2>我的終養報告</h2><p class="sub">${d}｜飼養對象：${c.p.n}</p>
+<div class="score"><svg width="96" height="96" viewBox="0 0 36 36" style="flex:none"><circle cx="18" cy="18" r="15.5" fill="none" stroke="${cv('--line')}" stroke-width="3.5"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="${cv('--acc')}" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${(a*.9739).toFixed(1)} 100" transform="rotate(-90 18 18)"/><text x="18" y="21" text-anchor="middle" font-size="10" font-weight="700" fill="${cv('--ink')}">${a}</text></svg><div><h2>${lv}</h2><p class="sub" style="margin:0">終養準備指數＝飼養前準備度＋Plan B 完整度＋承諾＋風險訊號</p></div></div></div>
+<div class="card"><h3 style="margin-top:0">飼養前準備度 ${c.total} 分</h3>${c.dims.map(x=>`<div class="row"><span>${x[0]}</span><span>${x[1]}</span></div><div class="bar"><i class="${cls(x[1])}" style="width:${x[1]}%"></i></div>`).join("")}
+<div class="row"><span>十年費用試算</span><b>約 NT$ ${c.cost} 萬</b></div></div>
+<div class="card"><h3 style="margin-top:0">變故 Plan B（${n} 項）</h3>${n?`<div class="risk g"><b>預估總額 ${(()=>{const p=planCost();return money(p.lo,p.hi)})()}</b></div>`:""}${n?pl.map(x=>`<div class="risk g">${x}</div>`).join(""):`<div class="risk">尚未建立，請回到第 2 步加入至少一項方案。</div>`}
+<h3>終養承諾</h3><div class="risk ${S.signed?"g":""}">${S.signed?"已由 "+S.names+" 簽署":"尚未簽署"}</div><div class="cert" style="margin-top:8px"><b>終養承諾書</b>${LT(c)}</div>
+<h3>風險訊號</h3><div class="risk ${s===0?"g":s===1?"":"b"}">${s===0?"目前沒有明顯訊號":"check-in 出現 "+s+" 項訊號"}</div></div>
+<div class="card"><h3 style="margin-top:0">建議下一步</h3>${td.map(x=>`<div class="chk"><span>${x}</span></div>`).join("")}<p class="note">本報告為準備度參考，不構成「是否適合飼養」的判定，也不提供診斷或處方建議；最終決定權在飼主。</p></div>
+<div class="btns" data-html2canvas-ignore="true"><button class="btn ghost" onclick="go(3)">上一步</button><button class="btn" id="pdfb" onclick="exportPDF()">匯出 PDF</button></div>`}
+document.getElementById("app").innerHTML=h}
+const PF={cat:.6,dog_s:.8,dog_m:1,dog_l:1.3},fm=v=>+v.toFixed(1);
+function amt(o){const m=o[1].match(/([\d.]+)(?:–([\d.]+))?/),lo=+m[1],hi=m[2]?+m[2]:lo,f=PF[S.pet];return[lo*f,hi*f]}
+function money(lo,hi){return lo===0&&hi===0?"NT$ 0":"NT$ "+(fm(lo)===fm(hi)?fm(lo):fm(lo)+"–"+fm(hi))+" 萬"}
+function planCost(){let lo=0,hi=0;const by={};Object.keys(S.plan).filter(k=>S.plan[k]).forEach(k=>{const ev=k.slice(0,-1),r=amt(EV[ev][+k.slice(-1)]);lo+=r[0];hi+=r[1];by[ev]=by[ev]||[0,0];by[ev][0]+=r[0];by[ev][1]+=r[1]});return{lo,hi,by}}
+function LT(c){const ks=Object.keys(S.plan).filter(k=>S.plan[k]),pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"（"+k.slice(0,-1)+"）");
+return `<p style="margin:0">本人${S.names?"（"+S.names+"）":""}在迎接${c.p.n}回家之際，鄭重承諾：</p><ol><li>陪伴牠從相遇到終老，不因一時的困難輕易放棄。</li><li>已了解${c.p.n}十年費用約 NT$ ${c.cost} 萬，並預留預算與醫療備用金。</li><li>已與家人共同討論，並約定分擔照顧責任。</li><li>生活出現變動時，先啟動 Plan B（${pl.length?pl.join("、"):"尚未建立"}），再考慮其他選擇。</li><li>每年接受一次 check-in，遇到困難時主動尋求訓練師、獸醫或地方動保單位協助。</li></ol><p style="margin:8px 0 0">簽署人：${S.names||"＿＿＿＿"}｜日期：${new Date().toLocaleDateString("zh-TW")}</p>`}
+const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const setB=t=>{const b=document.getElementById("pdfb");if(b)b.textContent=t};
+function pdfHTML(){
+const c=calc(),ks=Object.keys(S.plan).filter(k=>S.plan[k]),n=ks.length,s=S.ci.reduce((a,b)=>a+b,0);
+const pl=ks.map(k=>EV[k.slice(0,-1)][+k.slice(-1)][0]+"｜"+k.slice(0,-1));
+const a=Math.round(c.total*.5+Math.min(n,3)/3*25+(S.signed?15:0)+(s===0?10:s===1?5:0));
+const lv=a>=80?"終養準備良好":a>=60?"基礎已建立，仍有補強空間":"建議先補強再決定";
+const td=[];if(c.total<70)td.push("針對偏弱的條件先試養或補強後再決定");if(n<3)td.push("再為至少 3 個變故情境建立 Plan B");if(!S.signed)td.push("與家人完成終養承諾簽署");if(s>0)td.push("已出現風險訊號，請優先檢視變故預案，並諮詢訓練師、獸醫或地方動保單位");if(!td.length)td.push("維持每季 check-in，生活變動時重新評估");
+const rs=[];if(c.dims[0][1]<70)rs.push(`每日獨處約 ${S.hours} 小時偏長，建議先寄養試養，或安排日間照顧與放電時間。`);if(c.dims[1][1]<70)rs.push(`預估每月基本花費約 NT$ ${c.p.m.toLocaleString()}，目前預算偏緊，建議先預留醫療備用金。`);if(c.dims[2][1]<70)rs.push("房東尚未明確同意，建議先確認租約條款，再決定是否帶回家。");if(c.dims[3][1]<70)rs.push("家人意見尚未一致，建議先開一次家庭會議，分配照顧責任。");if(!rs.length)rs.push("目前條件看起來相當充足，仍建議建立 Plan B，為變動預作準備。");
+const e=t=>String(t).replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const d=new Date().toLocaleDateString("zh-TW"),nm=e(S.names||"＿＿＿＿"),col=v=>v>=75?"#1b7a6b":v>=55?"#b7791f":"#b4432f";
+const dash=(a*.9739).toFixed(1);
+return `<div class="pg"><style>.pg{width:794px;height:1123px;background:#fff;color:#17262b;font:13px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;display:flex;flex-direction:column}.pg *{box-sizing:border-box}.pg{box-sizing:border-box}.pg .hd{background:#1b7a6b;color:#fff;padding:32px 40px 26px}.pg .hd h1{margin:0;font-size:30px}.pg .hd p{margin:4px 0 0;font-size:13px}.pg .bd{flex:1;display:flex;flex-direction:column;gap:16px;padding:22px 40px 0}.pg h3{margin:0 0 8px;font-size:15px;color:#1b7a6b}.pg .box{border:1px solid #d3e0dd;border-radius:12px;padding:14px 18px}.pg .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pg .row{display:flex;justify-content:space-between}.pg .bar{height:7px;background:#e3ece9;border-radius:4px;margin:2px 0 9px}.pg .bar i{display:block;height:100%;border-radius:4px}.pg .tg{display:inline-block;background:#d9eee9;border-radius:99px;padding:1px 10px;margin:2px 4px 2px 0;font-size:12px}.pg ol,.pg ul{margin:0;padding-left:20px}.pg li{margin:3px 0}.pg .ft{padding:12px 40px 22px;font-size:11px;color:#5c6f73}.pg .st{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}.pg .st div{background:#eef5f3;border-radius:8px;padding:6px 10px;font-size:12px}.pg .st b{display:block;font-size:15px}</style>
+<div class="hd"><h1>相守 AI 終養報告</h1><p>${d}｜飼養對象：${c.p.n}｜毛孩未來研究所</p></div>
+<div class="bd">
+<div class="box" style="display:flex;gap:22px;align-items:center"><svg width="112" height="112" viewBox="0 0 36 36" style="flex:none"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#e3ece9" stroke-width="3.5"/><circle cx="18" cy="18" r="15.5" fill="none" stroke="#1b7a6b" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="${dash} 100" transform="rotate(-90 18 18)"/><text x="18" y="20.5" text-anchor="middle" font-size="10" font-weight="700" fill="#17262b">${a}</text><text x="18" y="25" text-anchor="middle" font-size="2.6" fill="#5c6f73">/ 100</text></svg>
+<div style="flex:1"><div style="font-size:11px;color:#5c6f73">終養準備指數</div><div style="font-size:23px;font-weight:700">${lv}</div><div style="font-size:11px;color:#5c6f73">飼養前準備度 50%＋Plan B 25%＋承諾 15%＋風險訊號 10%</div>
+<div class="st"><div>準備度<b>${c.total} / 100</b></div><div>Plan B<b>${n} 項</b></div><div>承諾<b>${S.signed?"已簽署":"未簽署"}</b></div><div>風險訊號<b>${s===0?"無":s+" 項"}</b></div></div></div></div>
+<div class="two"><div class="box"><h3>飼養前準備度四項條件</h3>${c.dims.map(x=>`<div class="row"><span>${x[0]}</span><b>${x[1]}</b></div><div class="bar"><i style="width:${x[1]}%;background:${col(x[1])}"></i></div>`).join("")}<div class="row"><span>十年費用試算</span><b>約 NT$ ${c.cost} 萬</b></div></div>
+<div class="box"><h3>變故 Plan B${n?"（預估 "+(()=>{const p=planCost();return money(p.lo,p.hi)})()+"）":""}</h3>${n?pl.slice(0,8).map(x=>`<span class="tg">${x}</span>`).join("")+(n>8?`<span class="tg">等 ${n} 項</span>`:""):"<div style='color:#b7791f'>尚未建立 Plan B</div>"}<h3 style="margin-top:14px">check-in 風險訊號</h3><div>${s===0?"目前沒有明顯訊號":"出現 "+s+" 項訊號，建議優先檢視變故預案"}</div></div></div>
+<div class="two"><div class="box"><h3>AI 提醒</h3><ul style="font-size:12px">${rs.map(x=>`<li>${x}</li>`).join("")}</ul></div><div class="box"><h3>建議下一步</h3><ul style="font-size:12px">${td.map(x=>`<li>${x}</li>`).join("")}</ul></div></div>
+<div class="box" style="flex:1;display:flex;flex-direction:column;border:2px solid #1b7a6b;background:#f3faf8"><h3 style="text-align:center;font-size:18px">終養承諾書</h3><p style="margin:0">本人（${nm}）在迎接${c.p.n}回家之際，鄭重承諾：</p><ol style="margin-top:6px"><li>陪伴牠從相遇到終老，不因一時的困難輕易放棄。</li><li>已了解${c.p.n}十年費用約 NT$ ${c.cost} 萬，並預留預算與醫療備用金。</li><li>已與家人共同討論，並約定分擔照顧責任。</li><li>生活出現變動時，先啟動 Plan B（${n?pl.slice(0,4).join("、"):"尚未建立"}），再考慮其他選擇。</li><li>每年接受一次 check-in，遇到困難時主動尋求訓練師、獸醫或地方動保單位協助。</li></ol>
+<div class="row" style="margin-top:auto;padding-top:12px;border-top:1px dashed #1b7a6b"><span>簽署人：<b>${nm}</b></span><span>日期：${d}</span><span>${S.signed?"已簽署":"尚未簽署"}</span></div></div>
+</div>
+<div class="ft">本報告為示意數據與準備度參考，不構成「是否適合飼養」的判定，也不提供診斷或處方建議；最終決定權在飼主。</div></div>`}
+async function exportPDF(){
+try{
+const dl=await claude.use("downloads");
+if(!dl){setB("此環境無法匯出");return}
+setB("產生中…");
+const box=document.createElement("div");box.style.cssText="position:fixed;left:0;top:0;z-index:-1;width:794px;height:1123px";box.innerHTML=pdfHTML();document.body.appendChild(box);
+await new Promise(r=>setTimeout(r,200));
+let src;try{src=await html2canvas(box,{scale:2,backgroundColor:"#ffffff",width:794,height:1123,scrollX:0,scrollY:0})}finally{box.remove()}
+const pdf=new window.jspdf.jsPDF({unit:"pt",format:"a4"});
+pdf.addImage(src.toDataURL("image/jpeg",.95),"JPEG",0,0,pdf.internal.pageSize.getWidth(),pdf.internal.pageSize.getHeight());
+await dl.save({filename:"相守AI終養報告.pdf",data:pdf.output("blob")});
+setB("已匯出 PDF")
+}catch(e){setB(e&&e.code==="declined"?"匯出 PDF":"匯出失敗，請重試")}
+finally{document.querySelector(".wrap").classList.remove("pdf");if(document.documentElement.dataset.theme){delete document.documentElement.dataset.theme;render()}}}
+function go(i){S.tab=i;render();window.scrollTo(0,0)}
+render();
+</script>
+</body>
+</html>
