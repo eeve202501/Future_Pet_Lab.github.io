@@ -199,17 +199,15 @@ return `<div class="pg"><style>.pg{width:794px;height:1123px;background:#fff;col
 <div class="ft">本報告為示意數據與準備度參考，不構成「是否適合飼養」的判定，也不提供診斷或處方建議；最終決定權在飼主。</div></div>`}
 async function exportPDF(){
 try{
-const dl=await claude.use("downloads");
-if(!dl){setB("此環境無法匯出");return}
 setB("產生中…");
 const box=document.createElement("div");box.style.cssText="position:fixed;left:0;top:0;z-index:-1;width:794px;height:1123px";box.innerHTML=pdfHTML();document.body.appendChild(box);
 await new Promise(r=>setTimeout(r,200));
 let src;try{src=await html2canvas(box,{scale:2,backgroundColor:"#ffffff",width:794,height:1123,scrollX:0,scrollY:0})}finally{box.remove()}
 const pdf=new window.jspdf.jsPDF({unit:"pt",format:"a4"});
 pdf.addImage(src.toDataURL("image/jpeg",.95),"JPEG",0,0,pdf.internal.pageSize.getWidth(),pdf.internal.pageSize.getHeight());
-await dl.save({filename:"相守AI終養報告.pdf",data:pdf.output("blob")});
+pdf.save("相守AI終養報告.pdf");
 setB("已匯出 PDF")
-}catch(e){setB(e&&e.code==="declined"?"匯出 PDF":"匯出失敗，請重試")}
+}catch(e){console.error(e);setB("匯出 PDF")}
 finally{document.querySelector(".wrap").classList.remove("pdf");if(document.documentElement.dataset.theme){delete document.documentElement.dataset.theme;render()}}}
 function go(i){S.tab=i;render();window.scrollTo(0,0)}
 render();
