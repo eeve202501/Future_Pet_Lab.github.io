@@ -119,7 +119,7 @@ const ok=S.ck.every(Boolean)&&S.names.trim();
 h=S.signed?`<div class="cert"><h2 style="text-align:center">終養承諾書</h2>${LT(c)}<p class="note">已簽署，並設定每年 check-in 提醒</p></div><div class="btns"><button class="btn ghost" onclick="S.signed=false;render()">重新編輯</button><button class="btn" onclick="go(3)">下一步：持續陪伴</button></div>`:
 `<div class="card"><h2>終養承諾</h2><p class="sub">把承諾拆成做得到的事，由家人共同確認</p>
 ${items.map((t,i)=>`<label class="chk" style="font-weight:400;margin:0"><input type="checkbox" ${S.ck[i]?"checked":""} onchange="S.ck[${i}]=this.checked;render()"><span>${t}</span></label>`).join("")}
-<label>簽署人</label><input type="text" id="nm" value="${S.names}" placeholder="例：小安、媽媽" oninput="S.names=this.value;document.getElementById('sg').disabled=!(S.ck.every(Boolean)&&S.names.trim());document.getElementById('lt').innerHTML=LT(calc())"></div>
+<label>簽署人（家人姓名，以頓號分隔）</label><input type="text" id="nm" value="${S.names}" placeholder="例：小安、媽媽" oninput="S.names=this.value;document.getElementById('sg').disabled=!(S.ck.every(Boolean)&&S.names.trim());document.getElementById('lt').innerHTML=LT(calc())"></div>
 <div class="card cert"><h3 style="margin-top:0">承諾書預覽</h3><div id="lt">${LT(c)}</div></div>
 <div class="btns"><button class="btn ghost" onclick="go(1)">上一步</button><button class="btn" id="sg" ${ok?"":"disabled"} onclick="S.signed=true;render()">確認並簽署承諾</button></div>`}
 if(S.tab===3){
